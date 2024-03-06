@@ -1,3 +1,4 @@
+import typing
 from typing import Optional
 
 from sqlalchemy import ForeignKey
@@ -94,3 +95,43 @@ class X(Base):
     )
 
     __table_args__ = (UniqueConstraint(a, b, name="uq1"), Index("ix1", c, d))
+
+
+if typing.TYPE_CHECKING:
+    # EXPECTED_RE_TYPE: sqlalchemy.orm.properties.MappedColumn\[builtins.int\]
+    reveal_type(mapped_column(Integer))
+
+    # EXPECTED_RE_TYPE: sqlalchemy.orm.properties.MappedColumn\[Union\[builtins.int, None\]\]
+    reveal_type(mapped_column(Integer, default=None))
+
+    # EXPECTED_RE_TYPE: sqlalchemy.orm.properties.MappedColumn\[builtins.int\]
+    reveal_type(mapped_column(Integer, default=7))
+
+    # EXPECTED_MYPY_RE: Argument 1 to "mapped_column" has incompatible type.*
+    x_err: Mapped[str] = mapped_column(Integer)
+
+    # EXPECTED_MYPY_RE: Argument "default" to "mapped_column" has incompatible type "None".*
+    y_err: Mapped[int] = mapped_column(Integer, default=None)
+
+    # EXPECTED_MYPY_RE: Argument "default" to "mapped_column" has incompatible type "None".*
+    z_err: Mapped[int] = mapped_column(default=None)
+
+    # EXPECTED_MYPY_RE: Argument "default" to "mapped_column" has incompatible type.*
+    w_err: Mapped[int] = mapped_column(default="a")
+
+    # All of these are fine
+    x1: Mapped[str] = mapped_column(String, default="a")
+    x2: Mapped[str] = mapped_column(default="a")
+    x3: Mapped[str] = mapped_column(String)
+    x4: Mapped[str] = mapped_column()
+
+    y1: Mapped[Optional[int]] = mapped_column(Integer, default=None)
+    y2: Mapped[Optional[int]] = mapped_column(default=None)
+    y3: Mapped[Optional[int]] = mapped_column(Integer)
+    y4: Mapped[Optional[int]] = mapped_column()
+
+    z1: Mapped[int] = mapped_column(Integer, default=7)
+    z2: Mapped[int] = mapped_column(default=7)
+    z3: Mapped[int] = mapped_column(Integer)
+    z4: Mapped[int] = mapped_column()
+
