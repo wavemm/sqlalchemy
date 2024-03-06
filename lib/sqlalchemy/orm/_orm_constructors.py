@@ -97,16 +97,16 @@ def contains_alias(alias: Union[Alias, Subquery]) -> AliasOption:
 
 def mapped_column(
     __name_pos: Optional[
-        Union[str, _TypeEngineArgument[Any], SchemaEventTarget]
+        Union[str, _TypeEngineArgument[_T], SchemaEventTarget]
     ] = None,
     __type_pos: Optional[
-        Union[_TypeEngineArgument[Any], SchemaEventTarget]
+        Union[_TypeEngineArgument[_T], SchemaEventTarget]
     ] = None,
     /,
     *args: SchemaEventTarget,
     init: Union[_NoArg, bool] = _NoArg.NO_ARG,
     repr: Union[_NoArg, bool] = _NoArg.NO_ARG,  # noqa: A002
-    default: Optional[Any] = _NoArg.NO_ARG,
+    default: Union[_NoArg, _T] = _NoArg.NO_ARG,
     default_factory: Union[_NoArg, Callable[[], _T]] = _NoArg.NO_ARG,
     compare: Union[_NoArg, bool] = _NoArg.NO_ARG,
     kw_only: Union[_NoArg, bool] = _NoArg.NO_ARG,
@@ -136,7 +136,7 @@ def mapped_column(
     comment: Optional[str] = None,
     sort_order: Union[_NoArg, int] = _NoArg.NO_ARG,
     **kw: Any,
-) -> MappedColumn[Any]:
+) -> MappedColumn[_T]:
     r"""declare a new ORM-mapped :class:`_schema.Column` construct
     for use within :ref:`Declarative Table <orm_declarative_table>`
     configuration.
