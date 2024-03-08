@@ -848,22 +848,31 @@ class MappedColumn(
                             "2.0.22",
                         )
 
+        sqltype_from_annotation = None
+        if our_type_is_pep593:
+            checks = [our_type, raw_pep_593_type]
+        else:
+            checks = [our_type]
+
+        for check_type in checks:
+            sqltype_from_annotation = registry._resolve_type(check_type)
+            if sqltype_from_annotation is not None:
+                break
+
+        if not sqltype._isnull and sqltype_from_annotation is not None:
+            if sqltype.python_type and sqltype_from_annotation.python_type:
+                if not _are_compatible_types(sqltype.python_type, sqltype_from_annotation.python_type):
+                    raise sa_exc.ArgumentError(
+                        f"The type {our_type} provided inside the {self.column.key!r} "
+                        "attribute Mapped annotation and the provided SQLAlchemy type "
+                        f"{sqltype} are incompatible."
+                    )
+
         if sqltype._isnull and not self.column.foreign_keys:
-            new_sqltype = None
-
-            if our_type_is_pep593:
-                checks = [our_type, raw_pep_593_type]
-            else:
-                checks = [our_type]
-
-            for check_type in checks:
-                new_sqltype = registry._resolve_type(check_type)
-                if new_sqltype is not None:
-                    break
-            else:
+            if sqltype_from_annotation is None:
                 if isinstance(our_type, TypeEngine) or (
-                    isinstance(our_type, type)
-                    and issubclass(our_type, TypeEngine)
+                        isinstance(our_type, type)
+                        and issubclass(our_type, TypeEngine)
                 ):
                     raise sa_exc.ArgumentError(
                         f"The type provided inside the {self.column.key!r} "
@@ -877,4 +886,8 @@ class MappedColumn(
                         "attribute Mapped annotation"
                     )
 
-            self.column._set_type(new_sqltype)
+            self.column._set_type(sqltype_from_annotation)
+
+
+def _are_compatible_types(t: type, s: type) -> bool:
+    return issubclass(t, s) or issubclass(s, t)
